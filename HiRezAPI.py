@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# hi-rez-API: Smite, Paladins, Realm
+# hi-rez-API: Smite, Paladins, Realm.
 import datetime
 import hashlib
 import requests
