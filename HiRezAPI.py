@@ -17,6 +17,7 @@ class HiRezAPI:
         self.AuthKey = auth_key
         self.session = self.session_to_json('r')
         self.t_now = datetime.datetime.utcnow().strftime("%Y%m%d%H%M%S")
+        self.langCode = self.lang_results()  # Default is 1 - English
 
     def create_signature(self, method):
         signature_raw = f'{self.DevId}{method}{self.AuthKey}{self.t_now}'
@@ -70,6 +71,13 @@ class HiRezAPI:
                 with open(f'{name_json_file}.json', "w") as write_file:
                     json.dump(({self.name_cls: self.session}), write_file, default=str, indent=4)
 
+    def lang_results(self, lang='English'):
+        lang_list = {'English': '1', 'German': '2', 'French': '3', 'Chinese': '5', 'Spanish': '7',
+                     'Spanish (Latin America)': '9', 'Portuguese': '10', 'Russian': '11', 'Polish': '12',
+                     'Turkish': '13'}
+        self.langCode = lang_list[lang]
+        return lang_list[lang]
+
     def ping(self):
         url = f'{self.url_prefix}pingJson'
         return requests.get(url).json()
@@ -82,12 +90,64 @@ class HiRezAPI:
         url = self.create_method_url('getdataused')
         return requests.get(url).json()
 
+    def get_hi_rez_server_status(self):
+        url = self.create_method_url('gethirezserverstatus')
+        return requests.get(url).json()
+
+    def get_patch_info(self):
+        url = self.create_method_url('getpatchinfo')
+        return requests.get(url).json()
+
+    def get_gods(self):
+        url = f"{self.create_method_url('getgods')}/{self.langCode}"
+        return requests.get(url).json()
+
+    def get_items(self):
+        url = f"{self.create_method_url('getitems')}/{self.langCode}"
+        return requests.get(url).json()
+
 
 class Smite(HiRezAPI):
     def get_player(self, player_name='iforvard'):
         url = f"{self.create_method_url('getplayer')}/{player_name}"
         return requests.get(url).json()
 
+    def get_god_leader_board(self, god_id, queue):
+        """
+        Returns the current season’s leaderboard for a god/queue combination.
+        queue: only queues 440 -Joust Ranked(1v1), 450 - Joust Ranked(3v3), 451 Conquest Ranked.
+        """
+        url = f"{self.create_method_url('getgodleaderboard')}/{god_id}/{queue}"
+        return requests.get(url).json()
+
+    def get_god_skins(self, god_id):
+        url = f"{self.create_method_url('getgodskins')}/{god_id}/{self.langCode}"
+        return requests.get(url).json()
+
+    def get_god_recommended_items(self, god_id):
+        url = f"{self.create_method_url('getgodrecommendeditems')}/{god_id}/{self.langCode}"
+        return requests.get(url).json()
+
 
 class Paladins(HiRezAPI):
     url_prefix = 'http://api.paladins.com/paladinsapi.svc/'
+
+    def get_champions(self):
+        url = f"{self.create_method_url('getchampions')}/{self.langCode}"
+        return requests.get(url).json()
+
+    def get_champion_cards(self, champion_id):
+        url = f"{self.create_method_url('getchampioncards')}/{champion_id}/{self.langCode}"
+        return requests.get(url).json()
+
+    def get_champion_leader_board(self, champion_id, queue=428):
+        """
+        Returns the current season’s leaderboard for a champion/queue combination.
+        queue: only queue 428 - LIVE competitive gamepad
+        """
+        url = f"{self.create_method_url('getchampionleaderboard')}/{champion_id}/{queue}"
+        return requests.get(url).json()
+
+    def get_champion_skins(self, champion_id):
+        url = f"{self.create_method_url('getchampionskins')}/{champion_id}/{self.langCode}"
+        return requests.get(url).json()
