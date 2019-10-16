@@ -12,7 +12,7 @@ class HiRezAPI:
 
     def __init__(self, dev_id, auth_key):
         self.name_cls = self.__class__.__name__
-        self.save_json_session = True
+        self.save_session_toJson = True
         self.DevId = dev_id
         self.AuthKey = auth_key
         self.session = self.session_to_json('r')
@@ -30,7 +30,7 @@ class HiRezAPI:
             url_session = f'{self.url_prefix}{"createsession"}Json/{self.DevId}/{sign}/{self.t_now}'
             self.session['time'] = datetime.datetime.utcnow()
             self.session['id'] = requests.get(url_session).json()['session_id']
-            if self.save_json_session:
+            if self.save_session_toJson:
                 self.session_to_json('w')
         return self.session['id']
 
@@ -51,7 +51,7 @@ class HiRezAPI:
                 'Paladins': default_session,
                 'Realm': default_session,
             }
-            if self.save_json_session:
+            if self.save_session_toJson:
                 if os.path.isfile(f'{name_json_file}.json'):
                     with open(f'{name_json_file}.json', "r") as read_file:
                         data_json = json.load(read_file)
@@ -61,6 +61,7 @@ class HiRezAPI:
                         return self.session
 
             return self.session[self.name_cls]
+
         if method == 'w' or method == 'write':
             if os.path.isfile(f'{name_json_file}.json'):
                 with open(f'{name_json_file}.json', "r") as read_file:
@@ -100,10 +101,14 @@ class HiRezAPI:
         return requests.get(url).json()
 
     def get_gods(self):
+        if self.name_cls == 'Realm':
+            return 'Only for Smite and Paladins'
         url = f"{self.create_method_url('getgods')}/{self.langCode}"
         return requests.get(url).json()
 
     def get_items(self):
+        if self.name_cls == 'Realm':
+            return 'Only for Smite and Paladins'
         url = f"{self.create_method_url('getitems')}/{self.langCode}"
         return requests.get(url).json()
 
@@ -156,3 +161,12 @@ class Paladins(HiRezAPI):
 
 class Realm(HiRezAPI):
     url_prefix = 'http://api.realmroyale.com/realmapi.svc/'
+
+    def get_leader_board(self, queue_id=474, ranking_criteria=1):
+        """
+        queue_id: 474 - LIVE Solo, 475 - LIVE Duo, 476 - LIVE Quad
+        ranking_criteria: 1 -Team Wins, 2 -Team Average Placement (shown below),
+        3 - Individual Average Kills, 4	- Winrate.
+        """
+        url = f"{self.create_method_url('getleaderboard')}/{queue_id}/{ranking_criteria}"
+        return requests.get(url).json()
