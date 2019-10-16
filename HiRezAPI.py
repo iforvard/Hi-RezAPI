@@ -10,9 +10,11 @@ import os
 class HiRezAPI:
     url_prefix = 'http://api.smitegame.com/smiteapi.svc/'  # Default prefix from class Smite
 
-    def __init__(self, dev_id, auth_key):
+    def __init__(self, dev_id,
+                 auth_key,
+                 save_session_to_json=True):
         self.name_cls = self.__class__.__name__
-        self.save_session_toJson = True
+        self.save_session_toJson = save_session_to_json
         self.DevId = dev_id
         self.AuthKey = auth_key
         self.session = self.session_to_json('r')
@@ -42,15 +44,6 @@ class HiRezAPI:
     def session_to_json(self, method):
         name_json_file = f'{self.DevId}_session'
         if method == 'r' or method == 'read':
-            default_session = {
-                'id': None,
-                'time': datetime.datetime.utcnow() - datetime.timedelta(minutes=15)
-            }
-            self.session = {
-                'Smite': default_session,
-                'Paladins': default_session,
-                'Realm': default_session,
-            }
             if self.save_session_toJson:
                 if os.path.isfile(f'{name_json_file}.json'):
                     with open(f'{name_json_file}.json', "r") as read_file:
@@ -60,7 +53,10 @@ class HiRezAPI:
                         self.session['time'] = datetime.datetime.strptime(self.session['time'], "%Y-%m-%d %H:%M:%S.%f")
                         return self.session
 
-            return self.session[self.name_cls]
+            self.session = {'id': None,
+                            'time': datetime.datetime.utcnow() - datetime.timedelta(minutes=15)}
+
+            return self.session
 
         if method == 'w' or method == 'write':
             if os.path.isfile(f'{name_json_file}.json'):
@@ -112,11 +108,16 @@ class HiRezAPI:
         url = f"{self.create_method_url('getitems')}/{self.langCode}"
         return requests.get(url).json()
 
+    def get_player(self, player, portal_id=1):
+        """
+        portal_id: Example values currently supported are: 1:Hi-Rez, 5:Steam, 9:PS4, 10:Xbox, 22:Switch
+        """
+        url = f"{self.create_method_url('getplayer')}/{player}/{portal_id}"
+        print(url)
+        return requests.get(url).json()
+
 
 class Smite(HiRezAPI):
-    def get_player(self, player_name='iforvard'):
-        url = f"{self.create_method_url('getplayer')}/{player_name}"
-        return requests.get(url).json()
 
     def get_god_leader_board(self, god_id, queue):
         """
