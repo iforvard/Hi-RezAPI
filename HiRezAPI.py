@@ -42,13 +42,14 @@ class HiRezAPI:
     def session_to_json(self, method):
         name_json_file = f'{self.DevId}_session'
         if method == 'r' or method == 'read':
+            default_session = {
+                'id': None,
+                'time': datetime.datetime.utcnow() - datetime.timedelta(minutes=15)
+            }
             self.session = {
-                'Smite': {'id': None,
-                          'time': datetime.datetime.utcnow() - datetime.timedelta(minutes=15)
-                          },
-                'Paladins': {'id': None,
-                             'time': datetime.datetime.utcnow() - datetime.timedelta(minutes=15)
-                             }
+                'Smite': default_session,
+                'Paladins': default_session,
+                'Realm': default_session,
             }
             if self.save_json_session:
                 if os.path.isfile(f'{name_json_file}.json'):
@@ -151,3 +152,7 @@ class Paladins(HiRezAPI):
     def get_champion_skins(self, champion_id):
         url = f"{self.create_method_url('getchampionskins')}/{champion_id}/{self.langCode}"
         return requests.get(url).json()
+
+
+class Realm(HiRezAPI):
+    url_prefix = 'http://api.realmroyale.com/realmapi.svc/'
