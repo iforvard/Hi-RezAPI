@@ -7,19 +7,36 @@ import json
 import os
 
 
-class HiRezAPI:
+class Err_API(Exception):
+    err_info_hard = True
+
+    def base_err(self, text):
+        if type(self.err_info_hard) == bool:
+            if self.err_info_hard:
+                raise Err_API(f'Hard error: {text}')
+            else:
+                return {'ret_msg': f'Soft error: {text}'}
+        else:
+            raise Err_API(f'Hard error: err_info must be bool')
+
+
+class HiRezAPI(Err_API):
     url_prefix = 'http://api.smitegame.com/smiteapi.svc/'  # Default prefix from class Smite
 
     def __init__(self, dev_id,
                  auth_key,
-                 save_session_to_json=True):
+                 save_session_to_json=True,
+                 lang='English',
+                 err_info=True
+                 ):
         self.name_cls = self.__class__.__name__
         self.save_session_toJson = save_session_to_json
         self.DevId = dev_id
         self.AuthKey = auth_key
         self.session = self.session_to_json('r')
         self.t_now = datetime.datetime.utcnow().strftime("%Y%m%d%H%M%S")
-        self.langCode = self.lang_results()  # Default is 1 - English
+        self.langCode = self.lang_results(lang)  # Default is 1 - English
+        self.err_info_hard = err_info
 
     def create_signature(self, method):
         signature_raw = f'{self.DevId}{method}{self.AuthKey}{self.t_now}'
@@ -98,13 +115,13 @@ class HiRezAPI:
 
     def get_gods(self):
         if self.name_cls == 'Realm':
-            return 'Only for Smite and Paladins'
+            return self.base_err('Only for Smite and Paladins')
         url = f"{self.create_method_url('getgods')}/{self.langCode}"
         return requests.get(url).json()
 
     def get_items(self):
         if self.name_cls == 'Realm':
-            return 'Only for Smite and Paladins'
+            return self.base_err('Only for Smite and Paladins')
         url = f"{self.create_method_url('getitems')}/{self.langCode}"
         return requests.get(url).json()
 
@@ -113,7 +130,14 @@ class HiRezAPI:
         portal_id: Example values currently supported are: 1:Hi-Rez, 5:Steam, 9:PS4, 10:Xbox, 22:Switch
         """
         url = f"{self.create_method_url('getplayer')}/{player}/{portal_id}"
-        print(url)
+        return requests.get(url).json()
+
+    def get_player_id_by_name(self, player):
+        url = f"{self.create_method_url('getplayeridbyname')}/{player}"
+        return requests.get(url).json()
+
+    def get_player_id_by_portal_user_id(self, portal_user_id=76561198078536687, portal_id=5):
+        url = f"{self.create_method_url('getplayeridbyportaluserid')}/{portal_id}/{portal_user_id}"
         return requests.get(url).json()
 
 
@@ -157,6 +181,14 @@ class Paladins(HiRezAPI):
 
     def get_champion_skins(self, champion_id):
         url = f"{self.create_method_url('getchampionskins')}/{champion_id}/{self.langCode}"
+        return requests.get(url).json()
+
+    def get_player_batch(self, champion_id_list: list):
+        """
+        Returns league and other high level data for a particular CSV set of up to 20 playerIds.  [PaladinsAPI only]
+        """
+        champion_id_list = ','.join([str(champion) for champion in champion_id_list])
+        url = f"{self.create_method_url('getplayerbatch')}/{champion_id_list}"
         return requests.get(url).json()
 
 
