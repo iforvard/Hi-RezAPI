@@ -140,6 +140,14 @@ class HiRezAPI(Err_API):
         url = f"{self.create_method_url('getplayeridbyportaluserid')}/{portal_id}/{portal_user_id}"
         return requests.get(url).json()
 
+    def get_player_status(self, player_id):
+        url = f"{self.create_method_url('getplayerstatus')}/{player_id}"
+        return requests.get(url).json()
+
+    def get_match_player_details(self, match_id):
+        url = f"{self.create_method_url('getmatchplayerdetails')}/{match_id}"
+        return requests.get(url).json()
+
 
 class Smite(HiRezAPI):
 
