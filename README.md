@@ -14,4 +14,4 @@ Live Match Graphic Widget Using Smite API and PySimpleGUI https://github.com/ifo
 
 [here]: https://fs12.formsite.com/HiRez/form48/secure_index.html
 
-[SMITE API / Paladins /Realm API Developer Guide]: https://docs.google.com/document/d/1OFS-3ocSx-1Rvg4afAnEHlT3917MAK_6eJTR6rzr-BM/edit
+[SMITE API / Paladins /Realm API Developer Guide]: https://docs.google.com/document/d/1OFS-3ocSx-1Rvg4afAnEHlT3917MAK_6eJTR6rzr-BM/view
