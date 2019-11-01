@@ -148,6 +148,18 @@ class HiRezAPI(Err_API):
         url = f"{self.create_method_url('getmatchplayerdetails')}/{match_id}"
         return requests.get(url).json()
 
+    def get_friends(self, player_id):
+        url = f"{self.create_method_url('getfriends')}/{player_id}"
+        return requests.get(url).json()
+
+    def get_player_achievements(self, player_id):
+        url = f"{self.create_method_url('getplayerachievements')}/{player_id}"
+        return requests.get(url).json()
+
+    def get_match_history(self, player_id):
+        url = f"{self.create_method_url('getmatchhistory')}/{player_id}"
+        return requests.get(url).json()
+
 
 class Smite(HiRezAPI):
 
@@ -165,6 +177,10 @@ class Smite(HiRezAPI):
 
     def get_god_recommended_items(self, god_id):
         url = f"{self.create_method_url('getgodrecommendeditems')}/{god_id}/{self.langCode}"
+        return requests.get(url).json()
+
+    def get_god_ranks(self, player_id):
+        url = f"{self.create_method_url('getgodranks')}/{player_id}"
         return requests.get(url).json()
 
 
@@ -197,6 +213,17 @@ class Paladins(HiRezAPI):
         """
         champion_id_list = ','.join([str(champion) for champion in champion_id_list])
         url = f"{self.create_method_url('getplayerbatch')}/{champion_id_list}"
+        return requests.get(url).json()
+
+    def get_champion_ranks(self, champion_id):
+        url = f"{self.create_method_url('getchampionranks')}/{champion_id}"
+        return requests.get(url).json()
+
+    def get_player_loadouts(self, champion_id):
+        """
+        Returns deck loadouts per Champion.
+        """
+        url = f"{self.create_method_url('getplayerloadouts')}/{champion_id}/{self.langCode}"
         return requests.get(url).json()
 
 
