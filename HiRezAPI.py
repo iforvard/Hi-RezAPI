@@ -23,12 +23,13 @@ class Err_API(Exception):
 class HiRezAPI(Err_API):
     url_prefix = 'http://api.smitegame.com/smiteapi.svc/'  # Default prefix from class Smite
 
-    def __init__(self, dev_id,
-                 auth_key,
-                 save_session_to_json=True,
-                 lang='English',
-                 err_info=True
-                 ):
+    def __init__(
+            self, dev_id,
+            auth_key,
+            save_session_to_json=True,
+            lang='English',
+            err_info=True
+    ):
         self.name_cls = self.__class__.__name__
         self.save_session_toJson = save_session_to_json
         self.DevId = dev_id
@@ -114,13 +115,13 @@ class HiRezAPI(Err_API):
         return requests.get(url).json()
 
     def get_gods(self):
-        if self.name_cls == 'Realm':
+        if self.name_cls == 'RealmAPI':
             return self.base_err('Only for Smite and Paladins')
         url = f"{self.create_method_url('getgods')}/{self.langCode}"
         return requests.get(url).json()
 
     def get_items(self):
-        if self.name_cls == 'Realm':
+        if self.name_cls == 'RealmAPI':
             return self.base_err('Only for Smite and Paladins')
         url = f"{self.create_method_url('getitems')}/{self.langCode}"
         return requests.get(url).json()
@@ -160,13 +161,49 @@ class HiRezAPI(Err_API):
         url = f"{self.create_method_url('getmatchhistory')}/{player_id}"
         return requests.get(url).json()
 
+    def get_match_details(self, match_id):
+        url = f"{self.create_method_url('getmatchdetails')}/{match_id}"
+        return requests.get(url).json()
 
-class Smite(HiRezAPI):
+    def get_match_details_batch(self, match_id_list: tuple) -> list:
+        str_match_id_list = ','.join([str(champion) for champion in match_id_list])
+        url = f"{self.create_method_url('getmatchdetailsbatch')}/{str_match_id_list}"
+        print(url)
+        return requests.get(url).json()
+
+    def get_match_ids_by_queue(self, queue: str, date: str, hour: str) -> list:
+        """
+        ------------------------------------------------------------------------------------
+        example: queue:'426', date:'2020-05-26', hour:'12,40'
+        ------------------------------------------------------------------------------------
+        Lists all Match IDs for a particular Match Queue;
+        useful for API developers interested in constructing data by Queue.
+        To limit the data returned, an {hour} parameter was added (valid values: 0 - 23).
+        An {hour} parameter of -1 represents the entire day,
+        but be warned that this may be more data than we can return for certain queues.
+        Also, a returned “active_flag” means that there is no match information/stats for the corresponding match.
+        Usually due to a match being in-progress, though there could be other reasons.
+        ------------------------------------------------------------------------------------
+        NOTE - To avoid HTTP timeouts in the method, you can now specify a 10-minute window within the specified {hour}
+        field to lessen the size of data returned by appending a “,mm” value to the end of {hour}.
+        For example, to get the match Ids for the first 10 minutes of hour 3, you would specify {hour} as “3,00”.
+        This would only return the Ids between the time 3:00 to 3:09.
+        Rules below: Only valid values for mm are “00”, “10”, “20”, “30”, “40”, “50”
+        To get the entire third hour worth of Match Ids, call 6 times,
+        specifying the following values for {hour}:“3,00”, “3,10”, “3,20”, “3,30”, “3,40”, “3,50”.
+        The standard, full hour format of {hour} = “hh” is still supported.
+        """
+        date = date
+        url = f"{self.create_method_url('getmatchidsbyqueue')}/{queue}/{date}/{hour}"
+        return requests.get(url).json()
+
+
+class SmiteAPI(HiRezAPI):
 
     def get_god_leader_board(self, god_id, queue):
         """
         Returns the current season’s leaderboard for a god/queue combination.
-        queue: only queues 440 -Joust Ranked(1v1), 450 - Joust Ranked(3v3), 451 Conquest Ranked.
+        queue: only queues 440 -Joust Ranked(1v1), 450 - Joust Ranked(3v3), 451 - Conquest Ranked(5v5).
         """
         url = f"{self.create_method_url('getgodleaderboard')}/{god_id}/{queue}"
         return requests.get(url).json()
@@ -184,7 +221,7 @@ class Smite(HiRezAPI):
         return requests.get(url).json()
 
 
-class Paladins(HiRezAPI):
+class PaladinsAPI(HiRezAPI):
     url_prefix = 'http://api.paladins.com/paladinsapi.svc/'
 
     def get_champions(self):
@@ -227,7 +264,7 @@ class Paladins(HiRezAPI):
         return requests.get(url).json()
 
 
-class Realm(HiRezAPI):
+class RealmAPI(HiRezAPI):
     url_prefix = 'http://api.realmroyale.com/realmapi.svc/'
 
     def get_leader_board(self, queue_id=474, ranking_criteria=1):
